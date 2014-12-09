@@ -62,6 +62,11 @@ module.exports = function(sequelize, DataTypes) {
       }
     }
   });
+
+  // When does this come into play?
+  //    Answer: when we authenticate a user
+  // Note: This assumes someone has already 
+  //    signed up
   passport.use(new passportLocal.Strategy(
     {
       usernameField: 'user[email]',
@@ -73,5 +78,12 @@ module.exports = function(sequelize, DataTypes) {
       user.authenticate(email, password, done);
     }
   ))
+
+
+
+
+
+
+
   return user;
 };
