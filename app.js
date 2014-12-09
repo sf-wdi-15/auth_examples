@@ -45,6 +45,9 @@ passport.deserializeUser(function(id, done){
     });
 });
 
+
+// User routes
+
 app.post("/users", function (req, res) {
   console.log("POST /users");
   var newUser = req.body.user;
@@ -74,6 +77,9 @@ app.get("/users/:id", function (req, res) {
     })
 });
 
+
+// Session related routes
+
 app.get("/login", function (req, res) {
   res.render("users/login");
 });
@@ -84,6 +90,12 @@ app.post('/login', passport.authenticate('local', {
 }));
 
 
+app.get("/logout", function (req, res) {
+  req.logout();
+  res.redirect("/");
+});
+
+// Sites related routes
 app.get("/", function (req, res) {
   console.log(req.user)
   if (req.user) {
@@ -93,9 +105,10 @@ app.get("/", function (req, res) {
   }
 });
 
-app.get("/logout", function (req, res) {
-  req.logout();
-  res.redirect("/");
+// Articles Related Routes
+
+app.get("/articles/new", function (req, res) {
+  res.render("articles/new");
 });
 
 app.listen(3000, function () {
