@@ -15,6 +15,13 @@ module.exports = function(sequelize, DataTypes) {
       associate: function(models) {
         // associations can be defined here
       },
+      findByEmail: function () {
+        return this.find({
+          where: {
+            email: email
+          }
+        });
+      },
       encryptPassword: function (password) {
         var salt = bcrypt.genSaltSync(13);
         var hash = bcrypt.hashSync(password, salt);
@@ -28,7 +35,7 @@ module.exports = function(sequelize, DataTypes) {
         })
         .then(function (user) {
                     console.log("Whatt?")
-          success({message: 'Account Created'});
+          success(user);
         })
         .fail(function (err) {
           console.log("Whatt?")
@@ -38,11 +45,8 @@ module.exports = function(sequelize, DataTypes) {
         });
       },
       authenticate: function (email, password, err, success) {
-        this.find({
-          where: {
-            email: email
-          }
-        }).then(function (user) {
+        this.findByEmail(email)
+        .then(function (user) {
           if (user.checkPassword(password)) {
             success();
           }
