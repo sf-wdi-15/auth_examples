@@ -1,84 +1,13 @@
 var express = require("express"),
-  bodyParser = require("body-parser"),
-  db = require("./models"),
-  passport = require("passport"),
-  session = require("cookie-session"),
   app = express();
 
-app.set("view engine", "ejs");
-app.use(bodyParser.urlencoded({extended: true}));
-
-app.use(session( {
-  secret: 'thisismysecretkey',
-  name: 'chocolate chip',
-  // this is in milliseconds
-  maxage: 3600000
-  })
-);
-app.get("/sign_up", function (req, res) {
-  res.render("users/sign_up");
+app.get("/", function (req, res) {
+  console.log(req.get("cookie"));
+  var rawValue = req.get("cookie")
+  var count = parseInt(rawValue) || 0;
+  count += 1;
+  res.set("Set-Cookie",  count)
+  res.send("hello " + count);
 });
 
-// get passport started
-app.use(passport.initialize());
-app.use(passport.session());
-
-// prepare our serialize functions
-passport.serializeUser(function(user, done){
-  console.log("SERIALIZED JUST RAN!");
-  done(null, user.id);
-});
-
-passport.deserializeUser(function(id, done){
-  console.log("DESERIALIZED JUST RAN!");
-  db.user.find({
-      where: {
-        id: id
-      }
-    })
-    .then(function(user){
-      done(error, user);
-    });
-});
-
-app.post("/users", function (req, res) {
-  console.log("POST /users");
-  var newUser = req.body.user;
-  console.log("New User:", newUser);
-  db.user.createSecure(newUser.email, newUser.password, 
-    function () {
-      res.redirect("/sign_up");
-    },
-    function (err, user) {
-      passport.authenticate('local')(req, res, function(){
-        console.log("Id: ", user.id)
-        res.redirect('/users/' + user.id);
-      });
-    }
-  )
-});
-
-
-app.get("/users/:id", function (req, res) {
-  var id = req.params.id;
-  db.user.find(id)
-    .then(function (user) {
-      res.render("users/show", {user: user});
-    })
-    .error(function () {
-      res.redirect("/sign_up");
-    })
-});
-
-
-
-
-app.listen(3000, function () {
-  console.log("LISTENING");
-})
-
-
-
-
-
-
+app.listen(3000);
