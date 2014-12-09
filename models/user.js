@@ -18,7 +18,7 @@ module.exports = function(sequelize, DataTypes) {
       associate: function(models) {
         // associations can be defined here
       },
-      findByEmail: function () {
+      findByEmail: function (email) {
         return this.find({
           where: {
             email: email

@@ -26,6 +26,7 @@ app.use(passport.session());
 // prepare our serialize functions
 passport.serializeUser(function(user, done){
   console.log("SERIALIZED JUST RAN!");
+
   done(null, user.id);
 });
 
@@ -37,7 +38,10 @@ passport.deserializeUser(function(id, done){
       }
     })
     .then(function(user){
-      done(error, user);
+      done(null, user);
+    },
+    function(err) {
+      done(err, null);
     });
 });
 
@@ -50,7 +54,7 @@ app.post("/users", function (req, res) {
       res.redirect("/sign_up");
     },
     function (err, user) {
-      passport.authenticate('local')(req, res, function(){
+      req.login(user, function(){
         console.log("Id: ", user.id)
         res.redirect('/users/' + user.id);
       });
@@ -70,8 +74,29 @@ app.get("/users/:id", function (req, res) {
     })
 });
 
+app.get("/login", function (req, res) {
+  res.render("users/login");
+});
+
+app.post('/login', passport.authenticate('local', {
+  successRedirect: '/',
+  failureRedirect: '/login'
+}));
 
 
+app.get("/", function (req, res) {
+  console.log(req.user)
+  if (req.user) {
+    res.render("site/index", {user: req.user});
+  } else {
+    res.render("site/index", {user: false});
+  }
+});
+
+app.get("/logout", function (req, res) {
+  req.logout();
+  res.redirect("/");
+});
 
 app.listen(3000, function () {
   console.log("LISTENING");
