@@ -1,6 +1,9 @@
 "use strict";
 
 var bcrypt = require("bcrypt");
+var passport = require("passport");
+var passportLocal = require("passport-local");
+
 module.exports = function(sequelize, DataTypes) {
   var user = sequelize.define("user", {
     email: DataTypes.STRING,
@@ -34,28 +37,41 @@ module.exports = function(sequelize, DataTypes) {
           password_digest: hash
         })
         .then(function (user) {
-                    console.log("Whatt?")
-          success(user);
-        })
-        .fail(function (err) {
+          console.log("YES!!")
+          success(null, user, {message: "logged in"});
+         },
+        function (err) {
           console.log("Whatt?")
           console.log(arguments)
           console.log(err)
-          error({message: "something went wrong"});
+          error(null, false, {message: "something went wrong"});
         });
       },
-      authenticate: function (email, password, err, success) {
+      authenticate: function (email, password, done) {
         this.findByEmail(email)
         .then(function (user) {
           if (user.checkPassword(password)) {
-            success();
+            done(null, user);
+          } else {
+            done(null, false, {message: "oops"});
           }
-        }).error(function (err) {
-          error({message: "Invalid data"});
+        },
+        function (err) {
+            done(err)
         })
       }
     }
   });
-
+  passport.use(new passportLocal.Strategy(
+    {
+      usernameField: 'user[email]',
+      passwordField: 'user[password]',
+      passReqToCallback : true
+    },
+    function (req, email, password, done) {
+      console.log("Authenticating");
+      user.authenticate(email, password, done);
+    }
+  ))
   return user;
 };

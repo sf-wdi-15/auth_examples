@@ -1,14 +1,44 @@
 var express = require("express"),
   bodyParser = require("body-parser"),
   db = require("./models"),
+  passport = require("passport"),
+  session = require("cookie-session"),
   app = express();
-
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 
+app.use(session( {
+  secret: 'thisismysecretkey',
+  name: 'chocolate chip',
+  // this is in milliseconds
+  maxage: 3600000
+  })
+);
 app.get("/sign_up", function (req, res) {
   res.render("users/sign_up");
+});
+
+// get passport started
+app.use(passport.initialize());
+app.use(passport.session());
+
+// prepare our serialize functions
+passport.serializeUser(function(user, done){
+  console.log("SERIALIZED JUST RAN!");
+  done(null, user.id);
+});
+
+passport.deserializeUser(function(id, done){
+  console.log("DESERIALIZED JUST RAN!");
+  db.user.find({
+      where: {
+        id: id
+      }
+    })
+    .then(function(user){
+      done(error, user);
+    });
 });
 
 app.post("/users", function (req, res) {
@@ -19,11 +49,15 @@ app.post("/users", function (req, res) {
     function () {
       res.redirect("/sign_up");
     },
-    function (user) {
-      res.redirect("/users/" + user.id);
+    function (err, user) {
+      passport.authenticate('local')(req, res, function(){
+        console.log("Id: ", user.id)
+        res.redirect('/users/' + user.id);
+      });
     }
   )
 });
+
 
 app.get("/users/:id", function (req, res) {
   var id = req.params.id;
